@@ -14,11 +14,11 @@ function classifyResult = challenge(recordName)
 % To run your entry on the entire training set in a format that is
 % compatible with PhysioNet's scoring enviroment, run the script
 % generateValidationSet.m
-%
+% 
 % The challenge function requires that you have downloaded the challenge
 % data 'training_set' in a subdirectory of the current directory.
 %    http://physionet.org/physiobank/database/challenge/2016/
-%
+% 
 % This dataset is used by the generateValidationSet.m script to create
 % the annotations on your training set that will be used to verify that
 % your entry works properly in the PhysioNet testing environment.
@@ -52,6 +52,5 @@ PCG_resampled      = resample(PCG,springer_options.audio_Fs,Fs1); % resample to 
 
 %% Running extractFeaturesFromHsIntervals.m to obtain the features for normal/abnormal heart sound classificaiton
 features  = extractFeaturesFromHsIntervals(assigned_states,PCG_resampled);
-
 %% Running classifyFromHsIntervals.m to obtain the final classification result for the current recording
 classifyResult = classifyFromHsIntervals(features);

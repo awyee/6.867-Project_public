@@ -3,7 +3,7 @@
 % comparing the answers.txt file that you submit with your entry with
 % answers produced by your code running in our test environment using
 % the same records.
-%
+% 
 % In order to run this script, you should have downloaded and extracted
 % the validation set into the directory containing this file.
 %

@@ -52,5 +52,6 @@ PCG_resampled      = resample(PCG,springer_options.audio_Fs,Fs1); % resample to 
 
 %% Running extractFeaturesFromHsIntervals.m to obtain the features for normal/abnormal heart sound classificaiton
 features  = extractFeaturesFromHsIntervals(assigned_states,PCG_resampled);
+
 %% Running classifyFromHsIntervals.m to obtain the final classification result for the current recording
 classifyResult = classifyFromHsIntervals(features);

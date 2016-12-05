@@ -1,0 +1,18 @@
+Database,Diagnosis,Meaning
+training-a,Normal ,Normal control group
+training-a,MVP,Mitral valve prolapse
+training-a,Benign,Innocent or benign murmurs
+training-a,AD,Aortic disease
+training-a,MPC,Miscellaneous pathological conditions
+training-b,Normal ,Normal control group
+training-b,CAD,Coronary artery disease
+training-c,Normal ,Normal control group
+training-c,MR,Mitral regurgitation
+training-c,AS,Aortic stenosis
+training-d,Normal: NHC,"Recordings collected from 19 normal subjects, aged from 18 to 40 years"
+training-d,Normal: MARS500,"Recordings collected from 6 volunteers (astronauts), a part of the MARS500 project promoted by European Spatial Agency"
+training-d,Pathologic,pathologic recordings
+training-e,Normal ,Normal control group
+training-e,CAD,Coronary artery disease
+training-f,Normal,Normal control group
+training-f,Pathologic,pathologic recordings

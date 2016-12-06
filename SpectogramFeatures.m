@@ -105,8 +105,12 @@ for cycle= 1:numberBeats
 
         [s,f,t,p] = spectrogram(signal,window,0,window,Fs,'yaxis');
         
+        if(length(t)>WIND(1,w))
+            t= t(1:WIND(1,w));
+        end
+        
         for time=1:length(t)
-
+            
             z = 10*log10(p(:,time)); % z is the intensity
             z= z-min(z);
             [~,Maxnd]= max(10*log10(p(:,time)));

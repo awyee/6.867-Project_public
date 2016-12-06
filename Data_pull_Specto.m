@@ -51,7 +51,7 @@ numFeatures= 60;
 
 counter=1;
 %% Collect Data
-for setnum=5:6
+for setnum=6:6
 outfolder=strcat(data_folder,'/',output_set(setnum));
 autofolder=strcat(segmentfolder,'/',automated_seg,'/',auto_seg_train, set(setnum), auto_seg_train2);
 nonautofolder=strcat(segmentfolder,'/',non_auto_seg,'/',non_auto_seg_train, set(setnum), non_auto_seg_train2);
@@ -74,7 +74,7 @@ numcases=size(casenames,1);
 
 feat_matrix_auto=zeros(numcases,numFeatures);
 feat_matrix=zeros(numcases,numFeatures);
-    
+
 for i= 1:numcases
     
     state0= load([casenames(i,:) '_StateAns0.mat']);
@@ -89,10 +89,10 @@ for i= 1:numcases
     
 %     disp(strcat(output_set(setnum), int2str(i)))
     
-    disp('We are here: ');
-    disp(setnum/6);
-    disp(i/numcases);
-    disp('______________');
+     disp('We are here: ');
+     disp(setnum/6);
+     disp(i/numcases);
+     disp('______________');
 end
 
 % rmpath(autofolder);

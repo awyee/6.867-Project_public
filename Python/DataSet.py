@@ -8,6 +8,7 @@ import sys
 import xlrd
 import pandas as pd
 from collections import OrderedDict
+from sklearn import preprocessing
 
 
 # def consolidate_feature_files(general_path, general_file_name, dataset_labels, y_values):
@@ -54,6 +55,9 @@ class DataSet:
         self.testing = pd.DataFrame
         self.validation = pd.DataFrame
         self.training = pd.DataFrame
+        self.testingN = pd.DataFrame
+        self.validationN = pd.DataFrame
+        self.trainingN = pd.DataFrame
 
         # Feature Manipulation
         self.normalise = normalise_features
@@ -79,7 +83,7 @@ class DataSet:
 
         # Measure the number of features and extract the names
         self.number_features = features_sheets[data_set_labels[1]].shape[1]-1
-        self.feature_names = features_sheets[data_set_labels[1]].columns.values
+        self.feature_names = features_sheets[data_set_labels[1]].columns.values[1:]
 
         ''' Combine features and y-data (still a list per each Data Set) '''
         sheets = dict()
@@ -91,14 +95,11 @@ class DataSet:
                   keys=None, levels=None, names=None, verify_integrity=False, copy=True)
 
         ''' Remove zeros if necessary '''
+        # N.B. Has to be done before standardization
         # for labels in self.data_set_labels:
         for labels in self.data_set_labels:
             temp = sheets[labels]
             sheets[labels] = temp.loc[temp[self.feature_names[1]] != 0]
-
-
-        ''' Normalise features (careful not to normalise y-data) '''
-
 
         ''' Now split the data within each Data Set and finally combine '''
         frames_test = []
@@ -113,27 +114,37 @@ class DataSet:
 
         testing = pd.concat(frames_test)
         testing.columns = sheets[data_set_labels[1]].columns
+        self.testing = testing
 
         training = pd.concat(frames_train)
         training.columns = sheets[data_set_labels[1]].columns
+        self.training = training
 
         validation = pd.concat(frames_validate)
         validation.columns = sheets[data_set_labels[1]].columns
+        self.validation = validation
 
+        ''' Standardise features (careful not to standardise y-data) '''
+        # First we need to take a measure of the size of each t,t,v
+        n_val = validation.shape[0]
+        n_train = training.shape[0]
+        n_test = testing.shape[0]
 
-        ''' Save Data in three separate .csv files '''
+        all_features = pd.concat(frames_test + frames_validate + frames_train)
+        all_features.columns = sheets[data_set_labels[1]].columns
 
+        # std_scale = preprocessing.StandardScaler().fit(all_features[[self.feature_names]])
+        # df_std = std_scale.transform(all_features[[self.feature_names]])
 
-        ''' Save the data at the end '''
+        ''' Save data so that it may be retrieved'''
         self.save_data_set()
-
 
     def save_data_set(self):
 
-        pickle.dump(self, open(self.name, 'wb'))  # wb: write and binary
+        pickle.dump(self, open(self.name+'.p', 'wb'))  # wb: write and binary
 
     def split_to_ttv(self, sheet):
-
+        # Mi sembra funzioni bene ma devo controllare perchè lo mette giallo
         x = pd.DataFrame(sheet.values)
         test = x.sample(frac=self.testing_frac)
 
@@ -154,12 +165,7 @@ class DataSet:
     #
     #     self.features = features
 
-
-
-def load_data_set(filename='dataset.p'):
-    '''
-      This loads the split data labels
-    '''
-    return pickle.load(open(filename, 'rb')) # wb: read and binary
-
-
+    @staticmethod
+    def load_data_set(filename='dataset.p'):
+        # This loads the split data labels
+        return pickle.load(open(filename+'.p', 'rb'))  # wb: read and binary

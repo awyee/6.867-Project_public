@@ -20,8 +20,8 @@ CONSOLIDATED_LABELS_PATH = '/Consolidated_Labels.xlsx'
 DATASET_LABELS = ['A', 'B', 'C', 'D', 'E', 'F']
 
 # Variable Paths
-FEATURE_FILE = 'Standard_Feature_data_auto'
-date =  time.strftime("%m-%d-%Y")
+FEATURE_FILE = 'Standard_Feature_data'
+date = time.strftime("%m-%d-%Y")
 FILE_NAME = 'Split Data' + '_' + FEATURE_FILE + '_' + date
 
 # Variables
@@ -34,4 +34,4 @@ x = DataSet(FILE_NAME, CURRENT_PATH, DATA_PATH, CONSOLIDATED_LABELS_PATH, DATASE
             TRAINING_FRAC, FEATURE_FILE, NORMALISE_FEATURES)
 
 ''' Load Data Set '''
-y = DataSet.load_data_set(FILE_NAME)
+# y = DataSet.load_data_set(FILE_NAME)

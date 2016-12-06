@@ -133,10 +133,16 @@ class DataSet:
         all_features = pd.concat(frames_test + frames_validate + frames_train)
         all_features.columns = sheets[data_set_labels[1]].columns
 
-        # std_scale = preprocessing.StandardScaler().fit(all_features[[self.feature_names]])
-        # df_std = std_scale.transform(all_features[[self.feature_names]])
+        std_scale = preprocessing.StandardScaler().fit(all_features[self.feature_names])
+        all_features_n = std_scale.transform(all_features[self.feature_names])
 
-        ''' Save data so that it may be retrieved'''
+        all_features.loc[:, self.feature_names] = all_features_n
+
+        self.testingN = all_features[:n_test-1]
+        self.validationN = all_features[n_test:n_val+n_test-1]
+        self.trainingN = all_features[n_val+n_test:]
+
+        ''' Save data so that it may be retrieved '''
         self.save_data_set()
 
     def save_data_set(self):

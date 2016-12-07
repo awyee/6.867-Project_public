@@ -1,29 +1,10 @@
 # 5th December
 # Data Set Manipulation
 
-from matplotlib import pyplot as plt
-import numpy as np
+
 import pickle
-import sys
-import xlrd
 import pandas as pd
-from collections import OrderedDict
 from sklearn import preprocessing
-
-
-# def consolidate_feature_files(general_path, general_file_name, dataset_labels, y_values):
-#
-#     frames = []
-#
-#     for label in dataset_labels:
-#         path = general_path + '/' + label + '/' + general_file_name + '_' + label + '.csv'
-#         temp = pd.read_csv(path, skipinitialspace=True, skiprows=0)
-#         frames.append(pd.DataFrame(temp))
-#
-#     out = pd.concat(frames)
-#     out.to_csv()
-#
-#     return pd.concat(frames)
 
 
 class DataSet:
@@ -35,7 +16,7 @@ class DataSet:
      """
 
     def __init__(self, name, current_path, data_path, consolidated_labels_path, data_set_labels, testing_frac=0.1,
-                 training_frac=0.80, feature_file_name= 'Standard_Feature_data', normalise_features=True):
+                 training_frac=0.80, feature_file_names=None, normalise_features=True):
 
         # Names
         self.name = name
@@ -43,7 +24,7 @@ class DataSet:
 
         # Paths
         self.path = data_path
-        self.feature_file_name = feature_file_name
+        self.feature_file_names = feature_file_names
         self.consolidated_labels_path = self.path + consolidated_labels_path
         self.current_path = current_path
 
@@ -68,18 +49,20 @@ class DataSet:
 
         ''' Extract y-data '''
         # Extract y-Data from each sheet in the worksheet
-            # workbook = xlrd.open_workbook(self.consolidated_labels_path)
         # Now create a dictionary for the sheets within the workbook
         ylabel_sheets = dict()
         for labels in self.data_set_labels:
             ylabel_sheets[labels] = pd.read_excel(self.consolidated_labels_path,labels)
-            # ylabel_sheets[labels] = workbook.sheet_by_name(labels)
 
         ''' Extract the features for each Data Set '''
         features_sheets = dict()
-        for labels in self.data_set_labels:
-            path = self.path + '/' + labels + '/' + self.feature_file_name + '_' + labels + '.csv'
-            features_sheets[labels] = pd.read_csv(path, skipinitialspace=True, skiprows=0)
+        if len(self.feature_file_names) == 1:
+            feature_file_name = feature_file_names[0]
+            for labels in self.data_set_labels:
+                path = self.path + '/' + labels + '/' + feature_file_name + '_' + labels + '.csv'
+                features_sheets[labels] = pd.read_csv(path, skipinitialspace=True, skiprows=0)
+        else:
+            features_sheets = self.merge_features()
 
         # Measure the number of features and extract the names
         self.number_features = features_sheets[data_set_labels[1]].shape[1]-1
@@ -133,6 +116,7 @@ class DataSet:
         all_features = pd.concat(frames_test + frames_validate + frames_train)
         all_features.columns = sheets[data_set_labels[1]].columns
 
+        # Crashes in the next line when there are NaNs in the data
         std_scale = preprocessing.StandardScaler().fit(all_features[self.feature_names])
         all_features_n = std_scale.transform(all_features[self.feature_names])
 
@@ -144,6 +128,24 @@ class DataSet:
 
         ''' Save data so that it may be retrieved '''
         self.save_data_set()
+
+    def merge_features(self):
+
+        features_sheets = dict()
+        # skip column from second feature
+        for labels in self.data_set_labels:
+            temp = []
+            skip_column = False
+            for features in self.feature_file_names:
+                path = self.path + '/' + labels + '/' + features + '_' + labels + '.csv'
+                sheet = pd.read_csv(path, skipinitialspace=True, skiprows=0)
+                if skip_column:
+                    del sheet[sheet.columns[0]]
+                skip_column = True
+                temp.append(sheet)
+            features_sheets[labels] = pd.concat(temp, axis=1, join='outer', join_axes=None, ignore_index=False,
+                                           keys=None, levels=None, names=None, verify_integrity=False, copy=True)
+        return features_sheets
 
     def save_data_set(self):
 
@@ -161,17 +163,31 @@ class DataSet:
 
         return test, train, validate
 
-    # def extract_features(self, general_path, general_file_name, dataset_labels, normalise=True):
-    #
-    #     features = consolidate_feature_files(general_path, general_file_name, dataset_labels)
-    #
-    #     if(normalise):
-    #         # normalised_features = self.NormaliseFeatures
-    #         features = features
-    #
-    #     self.features = features
-
     @staticmethod
     def load_data_set(filename='dataset.p'):
         # This loads the split data labels
         return pickle.load(open(filename+'.p', 'rb'))  # wb: read and binary
+
+# def consolidate_feature_files(general_path, general_file_name, dataset_labels, y_values):
+#
+#     frames = []
+#
+#     for label in dataset_labels:
+#         path = general_path + '/' + label + '/' + general_file_name + '_' + label + '.csv'
+#         temp = pd.read_csv(path, skipinitialspace=True, skiprows=0)
+#         frames.append(pd.DataFrame(temp))
+#
+#     out = pd.concat(frames)
+#     out.to_csv()
+#
+#     return pd.concat(frames)
+
+# def extract_features(self, general_path, general_file_name, dataset_labels, normalise=True):
+#
+#     features = consolidate_feature_files(general_path, general_file_name, dataset_labels)
+#
+#     if(normalise):
+#         # normalised_features = self.NormaliseFeatures
+#         features = features
+#
+#     self.features = features

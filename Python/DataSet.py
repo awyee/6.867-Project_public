@@ -4,6 +4,7 @@
 
 import pickle
 import pandas as pd
+import numpy as np
 from sklearn import preprocessing
 
 
@@ -24,26 +25,34 @@ class DataSet:
 
         # Paths
         self.path = data_path
-        self.feature_file_names = feature_file_names
+        #self.feature_file_names = feature_file_names
         self.consolidated_labels_path = self.path + consolidated_labels_path
         self.current_path = current_path
 
-        # Data Splitting
+        # Data
         self.testing_frac = testing_frac
         self.training_frac = training_frac
+        self.features_sheets = feature_file_names  # New
+        self.complete_features_sheets = dict()  # Merged together
 
         # Split Data Storage
-        self.testing = pd.DataFrame
-        self.validation = pd.DataFrame
-        self.training = pd.DataFrame
-        self.testingN = pd.DataFrame
-        self.validationN = pd.DataFrame
-        self.trainingN = pd.DataFrame
+        # self.testing = pd.DataFrame
+        # self.validation = pd.DataFrame
+        # self.training = pd.DataFrame
+        #
+        # self.testingN = pd.DataFrame
+        # self.validationN = pd.DataFrame
+        # self.trainingN = pd.DataFrame
+
+        self.testing = dict()
+        self.validation = dict()
+        self.training = dict()
 
         # Feature Manipulation
         self.normalise = normalise_features
         self.number_features = int()
-        self.feature_names = []
+        self.feature_names = dict()
+        self.feature_label_names = []
         # self.features = pd.DataFrame
         # self.normalised_features = pd.DataFrame
 
@@ -53,36 +62,46 @@ class DataSet:
         ylabel_sheets = dict()
         for labels in self.data_set_labels:
             ylabel_sheets[labels] = pd.read_excel(self.consolidated_labels_path,labels)
+        self.feature_label_names = ylabel_sheets[data_set_labels[1]].columns.values
 
-        ''' Extract the features for each Data Set '''
-        features_sheets = dict()
-        if len(self.feature_file_names) == 1:
-            feature_file_name = feature_file_names[0]
-            for labels in self.data_set_labels:
-                path = self.path + '/' + labels + '/' + feature_file_name + '_' + labels + '.csv'
-                features_sheets[labels] = pd.read_csv(path, skipinitialspace=True, skiprows=0)
-        else:
-            features_sheets = self.merge_features()
+        # ''' Extract the features for each Data Set '''
+        # features_sheets = dict()
+        # if len(self.feature_file_names) == 1:
+        #     feature_file_name = feature_file_names[0]
+        #     for labels in self.data_set_labels:
+        #         path = self.path + '/' + labels + '/' + feature_file_name + '_' + labels + '.csv'
+        #         features_sheets[labels] = pd.read_csv(path, skipinitialspace=True, skiprows=0)
+        # else:
+        #     features_sheets = self.merge_features()
+
+        # Add a 's_' to feature names of the second file
+        for labels in self.data_set_labels:
+            self.features_sheets[1][labels].rename(columns=lambda x: 's_'+x, inplace=True)
 
         # Measure the number of features and extract the names
-        self.number_features = features_sheets[data_set_labels[1]].shape[1]-1
-        self.feature_names = features_sheets[data_set_labels[1]].columns.values[1:]
+        self.number_features = self.features_sheets[0][data_set_labels[1]].shape[1] - 1
+        self.feature_names['man'] = self.features_sheets[0][data_set_labels[1]].columns.values[1:]
+        self.feature_names['auto'] = self.features_sheets[1][data_set_labels[1]].columns.values[1:]
+        self.feature_names['both'] = np.append(self.feature_names['man'],self.feature_names['auto'])
+
+        ''' Merge the two feature_sheets '''
+        for labels in data_set_labels:
+            temp = []
+            temp.append(self.features_sheets[0][labels])
+            temp2 = self.features_sheets[1][labels]
+            del temp2[temp2.columns[0]]
+            temp.append(temp2)
+            self.complete_features_sheets[labels] = pd.concat(temp, axis=1, join='outer', join_axes=None, ignore_index=False,
+                                keys=None, levels=None, names=None, verify_integrity=False, copy=True)
 
         ''' Combine features and y-data (still a list per each Data Set) '''
         sheets = dict()
         for labels in self.data_set_labels:
             temp = []
             temp.append(ylabel_sheets[labels])
-            temp.append(features_sheets[labels])
+            temp.append(self.complete_features_sheets[labels])
             sheets[labels] = pd.concat(temp, axis=1, join='outer', join_axes=None, ignore_index=False,
                   keys=None, levels=None, names=None, verify_integrity=False, copy=True)
-
-        ''' Remove zeros if necessary '''
-        # N.B. Has to be done before standardization
-        # for labels in self.data_set_labels:
-        for labels in self.data_set_labels:
-            temp = sheets[labels]
-            sheets[labels] = temp.loc[temp[self.feature_names[1]] != 0]
 
         ''' Now split the data within each Data Set and finally combine '''
         frames_test = []
@@ -97,55 +116,112 @@ class DataSet:
 
         testing = pd.concat(frames_test)
         testing.columns = sheets[data_set_labels[1]].columns
-        self.testing = testing
+        # self.testing = testing
 
         training = pd.concat(frames_train)
         training.columns = sheets[data_set_labels[1]].columns
-        self.training = training
+        # self.training = training
 
         validation = pd.concat(frames_validate)
         validation.columns = sheets[data_set_labels[1]].columns
-        self.validation = validation
+        # self.validation = validation
+
+        ''' Now split between Manual and Auto '''
+        man_names = np.append(self.feature_label_names,self.feature_names['man'])
+        auto_names = np.append(self.feature_label_names,self.feature_names['auto'])
+
+        self.validation['auto'] = validation.loc[:, auto_names]
+        self.validation['man'] = validation.loc[:, man_names]
+
+        self.training['auto'] = training.loc[:, auto_names]
+        self.training['man'] = training.loc[:, man_names]
+
+        self.testing['auto'] = testing.loc[:, auto_names]
+        self.testing['man'] = testing.loc[:, man_names]
+
+        ''' Remove zeros if necessary '''
+        self.validation['man'],self.training['man'],self.testing['man'] = self.remove_zero_rows(self.validation['man'],
+                                                                          self.training['man'],self.testing['man'])
 
         ''' Standardise features (careful not to standardise y-data) '''
         # First we need to take a measure of the size of each t,t,v
-        n_val = validation.shape[0]
-        n_train = training.shape[0]
-        n_test = testing.shape[0]
+        n_val= dict()
+        n_train = dict()
+        n_test = dict()
+        n_val['man'] = self.validation['man'].shape[0]
+        n_val['auto'] = self.validation['auto'].shape[0]
+        n_train['man']  = self.training['man'] .shape[0]
+        n_train['auto'] = self.training['auto'].shape[0]
+        n_test['man'] = self.testing['man'].shape[0]
+        n_test['auto'] = self.testing['auto'].shape[0]
 
-        all_features = pd.concat(frames_test + frames_validate + frames_train)
-        all_features.columns = sheets[data_set_labels[1]].columns
+        all_features = dict()
+
+        temp=[]
+        temp.append(self.testing['auto'])
+        temp.append(self.validation['auto'])
+        temp.append(self.training['auto'])
+        all_features['auto'] = pd.concat(temp)
+        all_features['auto'].columns = self.testing['auto'].columns
+
+        temp = []
+        temp.append(self.testing['man'])
+        temp.append(self.validation['man'])
+        temp.append(self.training['man'])
+        all_features['man'] = pd.concat(temp)
+        all_features['man'].columns = self.testing['man'].columns
 
         # Crashes in the next line when there are NaNs in the data
-        std_scale = preprocessing.StandardScaler().fit(all_features[self.feature_names])
-        all_features_n = std_scale.transform(all_features[self.feature_names])
+        std_scale = dict()
+        all_features_n = dict()
+        std_scale['man'] = preprocessing.StandardScaler().fit(all_features['man'][self.feature_names['man']])
+        all_features_n['man'] = std_scale['man'].transform(all_features['man'][self.feature_names['man']])
+        std_scale['auto'] = preprocessing.StandardScaler().fit(all_features['auto'][self.feature_names['auto']])
+        all_features_n['auto'] = std_scale['auto'].transform(all_features['auto'][self.feature_names['auto']])
 
-        all_features.loc[:, self.feature_names] = all_features_n
+        all_features['man'].loc[:, self.feature_names['man']] = all_features_n['man']
+        all_features['auto'].loc[:, self.feature_names['auto']] = all_features_n['auto']
 
-        self.testingN = all_features[:n_test-1]
-        self.validationN = all_features[n_test:n_val+n_test-1]
-        self.trainingN = all_features[n_val+n_test:]
+        self.testing['man'] = all_features['man'][:n_test['man']-1]
+        self.testing['auto'] = all_features['auto'][:n_test['auto'] - 1]
+
+        self.validation['man'] = all_features['man'][:n_val['man'] - 1]
+        self.validation['auto'] = all_features['auto'][:n_val['auto'] - 1]
+
+        self.training['man'] = all_features['man'][:n_train['man'] - 1]
+        self.training['auto'] = all_features['auto'][:n_train['auto'] - 1]
 
         ''' Save data so that it may be retrieved '''
         self.save_data_set()
 
-    def merge_features(self):
+    # def merge_features(self):
+    #
+    #     features_sheets = dict()
+    #     # skip column from second feature
+    #     for labels in self.data_set_labels:
+    #         temp = []
+    #         skip_column = False
+    #         for features in self.feature_file_names:
+    #             path = self.path + '/' + labels + '/' + features + '_' + labels + '.csv'
+    #             sheet = pd.read_csv(path, skipinitialspace=True, skiprows=0)
+    #             if skip_column:
+    #                 del sheet[sheet.columns[0]]
+    #             skip_column = True
+    #             temp.append(sheet)
+    #         features_sheets[labels] = pd.concat(temp, axis=1, join='outer', join_axes=None, ignore_index=False,
+    #                                        keys=None, levels=None, names=None, verify_integrity=False, copy=True)
+    #     return features_sheets
 
-        features_sheets = dict()
-        # skip column from second feature
-        for labels in self.data_set_labels:
-            temp = []
-            skip_column = False
-            for features in self.feature_file_names:
-                path = self.path + '/' + labels + '/' + features + '_' + labels + '.csv'
-                sheet = pd.read_csv(path, skipinitialspace=True, skiprows=0)
-                if skip_column:
-                    del sheet[sheet.columns[0]]
-                skip_column = True
-                temp.append(sheet)
-            features_sheets[labels] = pd.concat(temp, axis=1, join='outer', join_axes=None, ignore_index=False,
-                                           keys=None, levels=None, names=None, verify_integrity=False, copy=True)
-        return features_sheets
+    def remove_zero_rows(self, validation, training, testing):
+
+        # N.B. Has to be done before standardization
+        # for labels in self.data_set_labels:
+
+        validation = validation.loc[validation[validation.columns[3]] != 0]
+        training = training.loc[training[training.columns[3]] != 0]
+        testing = testing.loc[testing[testing.columns[3]] != 0]
+
+        return validation, training, testing
 
     def save_data_set(self):
 
@@ -167,6 +243,26 @@ class DataSet:
     def load_data_set(filename='dataset.p'):
         # This loads the split data labels
         return pickle.load(open(filename+'.p', 'rb'))  # wb: read and binary
+
+    @staticmethod
+    def merge_multiple_feature_files(data_path,data_set_labels,feature_file_names):
+
+        features_sheets = dict()
+        # skip column from second feature
+        for labels in data_set_labels:
+            temp = []
+            skip_column = False
+            for features in feature_file_names:
+                path = data_path + '/' + labels + '/' + features + '_' + labels + '.csv'
+                sheet = pd.read_csv(path, skipinitialspace=True, skiprows=0)
+                if skip_column:
+                    del sheet[sheet.columns[0]]
+                skip_column = True
+                temp.append(sheet)
+            features_sheets[labels] = pd.concat(temp, axis=1, join='outer', join_axes=None, ignore_index=False,
+                            keys=None, levels=None, names=None, verify_integrity=False, copy=True)
+        return features_sheets
+
 
 # def consolidate_feature_files(general_path, general_file_name, dataset_labels, y_values):
 #

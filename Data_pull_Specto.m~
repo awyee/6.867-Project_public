@@ -51,7 +51,7 @@ numFeatures= 60;
 
 counter=1;
 %% Collect Data
-for setnum=1:6
+for setnum=6:6
 outfolder=strcat(data_folder,'/',output_set(setnum));
 autofolder=strcat(segmentfolder,'/',automated_seg,'/',auto_seg_train, set(setnum), auto_seg_train2);
 nonautofolder=strcat(segmentfolder,'/',non_auto_seg,'/',non_auto_seg_train, set(setnum), non_auto_seg_train2);

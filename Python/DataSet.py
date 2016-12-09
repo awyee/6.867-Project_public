@@ -183,13 +183,22 @@ class DataSet:
         all_features['auto'].loc[:, self.feature_names['auto']] = all_features_n['auto']
 
         self.testing['man'] = all_features['man'][:n_test['man']-1]
+        self.testing['man'].index = self.testing['man'][['Label']]
+
         self.testing['auto'] = all_features['auto'][:n_test['auto'] - 1]
+        self.testing['auto'].index = self.testing['auto'][['auto']]
 
         self.validation['man'] = all_features['man'][:n_val['man'] - 1]
+        self.validation['man'].index = self.validation['man'][['man']]
+
         self.validation['auto'] = all_features['auto'][:n_val['auto'] - 1]
+        self.validation['auto'].index = self.validation['auto'][['auto']]
 
         self.training['man'] = all_features['man'][:n_train['man'] - 1]
+        self.training['man'].index = self.training['man'][['man']]
+
         self.training['auto'] = all_features['auto'][:n_train['auto'] - 1]
+        self.training['auto'].index = self.training['auto'][['auto']]
 
         ''' Save data so that it may be retrieved '''
         self.save_data_set()

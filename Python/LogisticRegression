@@ -5,9 +5,38 @@ from DataSet import DataSet
 import os
 import pickle
 import pandas as pd
-from sklearn import preprocessing
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn import linear_model, datasets
 
+#
+data = DataSet.load_data_set('Split Data_Standard_12-08-2016')
 
-y = DataSet.load_data_set('Split Data_Standard_Feature_data_12-06-2016')
+''' Logistic Regression with Auto Data'''
 
+# Data Preparation
+test = data.testing['auto']
+train = data.training['auto']
+val = data.validation['auto']
+
+test_y = test[['Normal/Abnormal']]
+test_y.index = test[['Label']]
+train_y = train[['Normal/Abnormal']]
+val_y = val[['Normal/Abnormal']]
+
+test_x = test[[data.feature_names['auto']]]
+train_x = train[[data.feature_names['auto']]]
+val_x = val[[data.feature_names['auto']]]
+
+# Create Model
+logreg = linear_model.LogisticRegression(C=1e5)
+
+# Train Model
+tr_x = np.array(train_x)
+tr_y = train_y.as_matrix(columns=None)
+
+logreg.fit(tr_x, tr_y)
+
+# Make predictions
+y_out = logreg.predict(test_x)
 

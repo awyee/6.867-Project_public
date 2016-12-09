@@ -24,9 +24,9 @@ test_y.index = test[['Label']]
 train_y = train[['Normal/Abnormal']]
 val_y = val[['Normal/Abnormal']]
 
-test_x = test[[data.feature_names['auto']]]
-train_x = train[[data.feature_names['auto']]]
-val_x = val[[data.feature_names['auto']]]
+test_x = test[data.feature_names['auto']]
+train_x = train[data.feature_names['auto']]
+val_x = val[data.feature_names['auto']]
 
 # Create Model
 logreg = linear_model.LogisticRegression(C=1e5)
@@ -35,8 +35,8 @@ logreg = linear_model.LogisticRegression(C=1e5)
 tr_x = np.array(train_x)
 tr_y = train_y.as_matrix(columns=None)
 
-logreg.fit(tr_x, tr_y)
+# logreg.fit(tr_x, tr_y)
 
 # Make predictions
-y_out = logreg.predict(test_x)
+# y_out = logreg.predict(test_x)
 

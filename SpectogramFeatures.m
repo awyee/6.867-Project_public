@@ -7,7 +7,7 @@ function [ features ] = SpectogramFeatures( PCG,Fs,States,numFeatures )
 newFs= 2000;
 overlap=0.5;
 % Window lengths
-WIND= [1,5,1,5;1,0.5,0.5,1];
+WIND= [1,4,1,4;1,0.5,0.5,1];
 
 % PCG is resampled at the minimum sampling frequency of the data
 
@@ -74,7 +74,17 @@ A                    = reshape(indx2,4,length(indx2)/4)'; % A is N*4 matrix, the
 % A is N*4 matrix, the 4 columns save the beginnings of S1, systole, S2 and diastole in the same heart cycle respectively
 
 numberBeats= size(A,1);
-bigMatrix= zeros(numberBeats,sum(WIND(1,:)),4);
+bigMatrix= zeros(numberBeats,sum(WIND(1,:)),5);
+
+cycles_to_delete = 0;
+counter_delete = 2;
+min_window = 1;
+
+to_Add = A(2:end,1);
+to_Add = vertcat(to_Add,length(PCG_resampled));
+sig = horzcat(A,to_Add);
+sig = diff(sig,[],2);
+sig= sig+1;
 
 for cycle= 1:numberBeats
     
@@ -82,27 +92,35 @@ for cycle= 1:numberBeats
     
     % Windowing
     
-    beat= A(cycle,:);
+%     beat= A(cycle,:);
+%     
+%     sig(1)= beat(2)-beat(1)+1;
+%     sig(2)= beat(3)-beat(2)+1;
+%     sig(3)= beat(4)-beat(3)+1;
     
-    sig(1)= beat(2)-beat(1)+1;
-    sig(2)= beat(3)-beat(2)+1;
-    sig(3)= beat(4)-beat(3)+1;
+%     if cycle == numberBeats
+%         last= length(PCG_resampled);
+% %         if (last-beat(4))<100
+% %             continue;
+% %         end
+%     else    
+%         last= A(cycle+1,1);
+%     end
+%     
+%     sig(4)= last-beat(4)+1;
     
-    if cycle == numberBeats
-        last= length(PCG_resampled);
-        if (last-beat(4))<100
+%     disp(sig)
+    
+    for w=1:length(WIND(1,:))
+        signal= PCG_resampled(A(cycle,w):A(cycle,w)+sig(cycle,w)-1); 
+        window= floor(sig(cycle,w)/(WIND(1,w)));
+
+        if window<min_window
+            cycles_to_delete(counter_delete) = cycle;
+            counter_delete = counter_delete + 1;
             continue;
         end
-    else    
-        last= A(cycle+1,1);
-    end
-    
-    sig(4)= last-beat(4)+1;
-
-    for w=1:length(WIND(1,:))
-        signal= PCG_resampled(beat(1):beat(1)+sig(w)-1);
-        window= floor(sig(w)/(WIND(1,w)));
-
+        
         [s,f,t,p] = spectrogram(signal,window,0,window,Fs,'yaxis');
         
         if(length(t)>WIND(1,w))
@@ -110,6 +128,12 @@ for cycle= 1:numberBeats
         end
         
         for time=1:length(t)
+            
+            if(length(p)<length(t))
+                cycles_to_delete(counter_delete) = cycle;
+                counter_delete = counter_delete + 1;
+                continue;
+            end
             
             z = 10*log10(p(:,time)); % z is the intensity
             z= z-min(z);
@@ -127,6 +151,12 @@ for cycle= 1:numberBeats
             bigMatrix(cycle,counter,3)= std(temp)^2;
             bigMatrix(cycle,counter,4)= skewness(temp);
             bigMatrix(cycle,counter,5)= kurtosis(temp);
+            
+            if(sum(isnan(bigMatrix(cycle,counter,:))))
+                cycles_to_delete(counter_delete) = cycle;
+                counter_delete = counter_delete + 1;
+            end
+            
             counter= counter+1;
             
         end
@@ -136,7 +166,16 @@ for cycle= 1:numberBeats
    
 end
 
-features= mean(bigMatrix,1);
-features=features(:);
+cycles_to_delete(1)=[];
+if(~isempty(cycles_to_delete))
+    cycles_to_delete= unique(cycles_to_delete);
+    bigMatrix(cycles_to_delete,:,:) = [];
+end
+if(isempty(bigMatrix))
+    features = zeros(sum(WIND(1,:))*5,1);
+else
+    features= mean(bigMatrix,1);
+    features=features(:);
+end
 
 end

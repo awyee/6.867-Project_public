@@ -340,6 +340,48 @@ class DataSet:
 
         print('Class',class_one,': ',c1/tot, ' Class',class_two,': ',c2/tot)
 
+    @staticmethod
+    def heart_sound_scoring(matrix):
+
+        # Particular scoring function developed for heart sound competition
+        # This function accepts a np.array with 5 columns as follows:
+        # Class | Noise | A | U | N
+        #  -1/1 |  0/1  |0/1|0/1|0/1
+
+        a = np.where(matrix[:,0] == 1)[0].shape[0] # Abnormal Sounds
+        n = np.where(matrix[:,0] == -1)[0].shape[0] # Normal Sounds
+
+        a_g = np.where(np.logical_and( matrix[:, 0] == 1, matrix[: , 1] == 1))[0].shape[0]
+        a_p = np.where(np.logical_and(matrix[:, 0] == 1, matrix[:, 1] == 0))[0].shape[0]
+        n_g = np.where(np.logical_and(matrix[:, 0] == -1, matrix[:, 1] == 1))[0].shape[0]
+        n_p = np.where(np.logical_and(matrix[:, 0] == -1, matrix[:, 1] == 0))[0].shape[0]
+
+        wa1 = a_g/a
+        wa2 = a_p/a
+        wn1 = n_g/n
+        wn2 = n_p/n
+
+        aa1 = np.where((matrix == (1, 1, 1, 0, 0)).all(axis=1))[0].shape[0]
+        aq1 = np.where((matrix == (1, 1, 0, 1, 0)).all(axis=1))[0].shape[0]
+        an1 = np.where((matrix == (1, 1, 0, 0, 1)).all(axis=1))[0].shape[0]
+        aa2 = np.where((matrix == (1, 0, 1, 0, 0)).all(axis=1))[0].shape[0]
+        aq2 = np.where((matrix == (1, 0, 0, 1, 0)).all(axis=1))[0].shape[0]
+        an2 = np.where((matrix == (1, 0, 0, 0, 1)).all(axis=1))[0].shape[0]
+
+        na1 = np.where((matrix == (-1, 1, 1, 0, 0)).all(axis=1))[0].shape[0]
+        nq1 = np.where((matrix == (-1, 1, 0, 1, 0)).all(axis=1))[0].shape[0]
+        nn1 = np.where((matrix == (-1, 1, 0, 0, 1)).all(axis=1))[0].shape[0]
+        na2 = np.where((matrix == (-1, 0, 1, 0, 0)).all(axis=1))[0].shape[0]
+        nq2 = np.where((matrix == (-1, 0, 0, 1, 0)).all(axis=1))[0].shape[0]
+        nn2 = np.where((matrix == (-1, 0, 0, 0, 1)).all(axis=1))[0].shape[0]
+
+        Sensitivity = ((wa1*aa1)/(aa1+aq1+an1))+((wa2*(aa2+aq2))/(aa2+aq2+an2))
+        Specificty = ((wn1*nn1)/(na1+nq1+nn1))+((wn2*(nn2+nq2))/(na2+nq2+nn2))
+        MAcc = (Sensitivity+Specificty)/2
+
+        return Sensitivity, Specificty, MAcc
+
+
 # def consolidate_feature_files(general_path, general_file_name, dataset_labels, y_values):
 #
 #     frames = []

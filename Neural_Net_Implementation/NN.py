@@ -1,5 +1,6 @@
 import tensorflow as tf
 import numpy as np
+from DataSet import DataSet
 from six.moves import cPickle as pickle
 import sys
 import math
@@ -60,7 +61,7 @@ class PCGNet:
         self.define_tensorflow_graph()
 
     def define_tensorflow_graph(self):
-        print '\nDefining model...'
+        print ('\nDefining model...')
 
         with self.graph.as_default():
             # Input data
@@ -173,7 +174,7 @@ class PCGNet:
                 '''Train the model with minibatches in a tensorflow session'''
                 with tf.Session(graph=self.graph) as session:
                     tf.initialize_all_variables().run()
-                    print 'Initializing variables...'
+                    print ('Initializing variables...')
 
                     for step in range(num_steps):
                         offset = (step * batch_size) % (self.train_Y.shape[0] - batch_size)
@@ -190,7 +191,7 @@ class PCGNet:
                                                                                    dropout_keep_prob: 1.0})
                             val_preds = session.run(valid_prediction, feed_dict={dropout_keep_prob: 1.0})
                             #test_preds = session.run(test_prediction, feed_dict={dropout_keep_prob: 1.0})
-                            print ''
+                            print('')
                             print('Batch loss at step %d: %f' % (step, l))
                             print('Batch training accuracy: %.1f%%' % accuracy(predictions, batch_labels))
                             print('Validation accuracy: %.1f%%' % accuracy(val_preds, self.val_Y))
@@ -202,7 +203,7 @@ class PCGNet:
                     # This code is for the final question
 
                     if self.invariance:
-                        print "\n Obtaining final results on invariance sets!"
+                        print ("\n Obtaining final results on invariance sets!")
                         sets = [self.val_X, self.translated_val_X, self.bright_val_X, self.dark_val_X,
                                 self.high_contrast_val_X, self.low_contrast_val_X, self.flipped_val_X,
                                 self.inverted_val_X, ]
@@ -212,7 +213,7 @@ class PCGNet:
                         for i in range(len(sets)):
                             preds = session.run(test_prediction,
                                                 feed_dict={tf_test_dataset: sets[i], dropout_keep_prob: 1.0})
-                            print 'Accuracy on', set_names[i], 'data: %.1f%%' % accuracy(preds, self.val_Y)
+                            print ('Accuracy on', set_names[i], 'data: %.1f%%' % accuracy(preds, self.val_Y))
 
                             # save final preds to make confusion matrix
                             if i == 0:
@@ -252,21 +253,52 @@ class PCGNet:
             self.train_model = train_model
 
     def load_pickled_dataset(self, pickle_file):
-        print "Loading datasets..."
-        with open(pickle_file, 'rb') as f:
-            save = pickle.load(f)
-            self.train_X = save['train_data']       #Learn PANDAS
-            self.train_Y = save['train_labels']
-            self.val_X = save['val_data']
-            self.val_Y = save['val_labels']
+        # with open(pickle_file, 'rb') as f:
+        #     save = pickle.load(f)
+        #     self.train_X = save['train_data']       #Learn PANDAS
+        #     self.train_Y = save['train_labels']
+        #     self.val_X = save['val_data']
+        #     self.val_Y = save['val_labels']
+        #
+        #     if INCLUDE_TEST_SET:
+        #         self.test_X = save['test_data']
+        #         self.test_Y = save['test_labels']
+        #     del save  # hint to help gc free up memory
+        # Variables
+        data = DataSet.load_data_set('Split Data_Standard_12-09-2016')
+        data_type = 'auto'
+        y_label = 'Noise'  # 'Normal/Abnormal'
 
-            if INCLUDE_TEST_SET:
-                self.test_X = save['test_data']
-                self.test_Y = save['test_labels']
-            del save  # hint to help gc free up memory
-        print 'Training set', self.train_X.shape, self.train_Y.shape
-        print 'Validation set', self.val_X.shape, self.val_Y.shape
-        if INCLUDE_TEST_SET: print 'Test set', self.test_X.shape, self.test_Y.shape
+        ''' Logistic Regression with Auto Data'''
+        print ('Training set', self.train_X.shape, self.train_Y.shape)
+        print ('Validation set', self.val_X.shape, self.val_Y.shape)
+        print ('Test set', self.test_X.shape, self.test_Y.shape)
+        # Data Preparation
+        test = data.testing[data_type]
+        train = data.training[data_type]
+        val = data.validation[data_type]
+
+        self.test_Y = test[[y_label]].values.astype(float).ravel()
+        # print('Test\n')
+        # DataSet.print_balance(test_y)
+        self.train_Y = train[[y_label]].values.astype(float).ravel()
+        # print('Train\n')
+        # DataSet.print_balance(train_y)
+        self.val_Y = val[[y_label]].values.astype(float).ravel()
+        # print('Val\n')
+        # DataSet.print_balance(val_y)
+
+        self.test_X = test[data.feature_names['auto']].values.astype(float)
+        self.train_X = train[data.feature_names['auto']].values.astype(float)
+        self.val_X = val[data.feature_names['auto']].values.astype(float)
+
+        # Balance DataSets
+        test_y, test_x = DataSet.balance_dataset_by_reproduction(test_y, test_x)
+        train_y, train_x = DataSet.balance_dataset_by_reproduction(train_y, train_x)
+        val_y, val_x = DataSet.balance_dataset_by_reproduction(val_y, val_x)
+        print ('Training set', self.train_X.shape, self.train_Y.shape)
+        print ('Validation set', self.val_X.shape, self.val_Y.shape)
+        print ('Test set', self.test_X.shape, self.test_Y.shape)
 
 
 def weight_decay_penalty(weights, penalty):
@@ -311,5 +343,5 @@ if __name__ == '__main__':
                     conv_net.train_model()
                     t2 = time.time()
                     print('Data File: %s' %DATA_FILE)
-                    print "Finished training. Total time taken:", t2 - t1
+                    print ("Finished training. Total time taken:", t2 - t1)
 #                    print "Total time elapsed:", t2 - tstart

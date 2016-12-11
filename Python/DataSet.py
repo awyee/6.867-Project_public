@@ -6,7 +6,9 @@ import pickle
 import pandas as pd
 import numpy as np
 from sklearn import preprocessing
-
+import copy
+import random
+import NicsMethods
 
 class DataSet:
     """ This class creates the dataset separated into Testing, Training and Validation
@@ -272,6 +274,71 @@ class DataSet:
                             keys=None, levels=None, names=None, verify_integrity=False, copy=True)
         return features_sheets
 
+    @staticmethod
+    def balance_dataset_by_weights(y_values, class_one=-1, class_two=1):
+
+        c1 = np.count_nonzero(y_values == class_one)
+        c2 = np.count_nonzero(y_values == class_two)
+        tot = c1 + c2
+
+        weight_c1 = tot / (2 * c1)
+        weight_c2 = tot / (2 * c2)
+
+        weights = copy.deepcopy(y_values)
+
+        weights[weights == class_one] = weight_c1
+        weights[weights == class_two] = weight_c2
+
+        return weights
+
+    @staticmethod
+    def balance_dataset_by_reproduction(y_values, x_values):
+
+        u = np.unique(y_values)
+        class_one = u[0]
+        class_two = u[1]
+
+        c = dict()
+        c[class_one] = np.count_nonzero(y_values == class_one)
+        c[class_two] = np.count_nonzero(y_values == class_two)
+
+        diff = np.abs(c[class_one]-c[class_two])
+
+        class_to_reproduce = class_one
+        fraction = diff / c[class_one]
+        if(c[class_one]>c[class_two]):
+            class_to_reproduce = class_two
+            fraction = diff / c[class_two]
+
+        # ind = np.where(y_values == -1)
+        # new = x_values(ind)
+
+        old = np.concatenate(([y_values], x_values.T)).T
+        temp = old[old[:, 0] == class_to_reproduce]
+
+        # index = random.sample(range(1, y_values.__len__()), diff)
+        if c[class_to_reproduce] < diff:
+            new = temp[np.random.choice(temp.shape[0], diff, replace=True), :]
+        else:
+            new = temp[np.random.choice(temp.shape[0], diff, replace=False), :]
+
+        # Now concatenate all and split between y and x again
+
+        new = np.concatenate((new,old),axis=0)
+
+        y = new[:,0].ravel()
+        x = new[:,1:]
+
+        return y, x
+
+    @staticmethod
+    def print_balance(y_values, class_one=-1, class_two=1):
+
+        c1 = np.count_nonzero(y_values == class_one)
+        c2 = np.count_nonzero(y_values == class_two)
+        tot = c1 + c2
+
+        print('Class',class_one,': ',c1/tot, ' Class',class_two,': ',c2/tot)
 
 # def consolidate_feature_files(general_path, general_file_name, dataset_labels, y_values):
 #
@@ -296,3 +363,7 @@ class DataSet:
 #         features = features
 #
 #     self.features = features
+
+
+
+

@@ -1,4 +1,4 @@
-function [ features ] = SpectogramFeatures( PCG,Fs,States,numFeatures )
+function [ features ] = SpectogramFeatures( PCG,Fs,States,numFeatures,minWindow )
 
 % Inputs: Signal + Fs and States
 % Outputs: Spectogram Features
@@ -78,7 +78,7 @@ bigMatrix= zeros(numberBeats,sum(WIND(1,:)),5);
 
 cycles_to_delete = 0;
 counter_delete = 2;
-min_window = 1;
+min_window = minWindow;
 
 to_Add = A(2:end,1);
 to_Add = vertcat(to_Add,length(PCG_resampled));

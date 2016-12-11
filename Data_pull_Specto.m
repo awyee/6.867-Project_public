@@ -52,7 +52,14 @@ numFeatures= 50;
 
 counter=1;
 %% Collect Data
-for setnum=4:6
+for window_limit= 1:2
+    if window_limit==1
+        minWindow= 10;
+    else 
+        minWindow= 70;
+    end
+    
+for setnum=1:6
 outfolder=strcat(data_folder,'/',output_set(setnum));
 autofolder=strcat(segmentfolder,'/',automated_seg,'/',auto_seg_train, set(setnum), auto_seg_train2);
 nonautofolder=strcat(segmentfolder,'/',non_auto_seg,'/',non_auto_seg_train, set(setnum), non_auto_seg_train2);
@@ -81,12 +88,12 @@ parfor i= 1:numcases
     state0= load([casenames(i,:) '_StateAns0.mat']);
     state0= state0.state_ans0;
     [PCG, Fs1] = audioread([casenames(i,:) '.wav']);  % load data
-    feat_matrix_auto(i,:)= SpectogramFeatures(PCG,Fs1,state0,numFeatures);  
+    feat_matrix_auto(i,:)= SpectogramFeatures(PCG,Fs1,state0,numFeatures,minWindow);  
     
     state= load([casenames(i,:) '_StateAns.mat']);
     state= state.state_ans;
     [PCG, Fs1] = audioread([casenames(i,:) '.wav']);  % load data
-    feat_matrix(i,:)= SpectogramFeatures(PCG,Fs1,state,numFeatures);
+    feat_matrix(i,:)= SpectogramFeatures(PCG,Fs1,state,numFeatures,minWindow);
     
 %     disp(strcat(output_set(setnum), int2str(i)))
     
@@ -112,7 +119,7 @@ feat_cell_auto= mat2cell(feat_matrix_auto, ones(numcases,1), ones(numFeatures,1)
 % feature_names = textscan(num2str(feature_names), '%s');
 % topRow=['Label', feature_names{1}'];
 outputmatrix = [indexcells{:,1} feat_cell_auto];
-outputfile=strcat(outfolder, '/', 'Feature_Specto_data_', '_auto', output_set(setnum), '.csv');
+outputfile=strcat(outfolder, '/', 'Feature_Specto_data_', '_auto',  '_',int2str(minWindow), '_',output_set(setnum), '.csv'); % '_',int2str(minWindow), '_',
 % xlswrite(outputfile,outputmatrix);
 
 fid = fopen(outputfile,'wt');
@@ -129,7 +136,8 @@ feat_cell= mat2cell(feat_matrix, ones(numcases,1), ones(numFeatures,1));
 % topRow=['Label', feature_names{1}'];
 outputmatrix=[indexcells{:,1} feat_cell];
 % outputmatrix=vertcat(temp,outputmatrix);
-outputfile=strcat(outfolder, '/', 'Feature_Specto_data_', output_set(setnum), '.csv');
+outputfile=strcat(outfolder, '/', 'Feature_Specto_data_',  '_',int2str(minWindow), '_', output_set(setnum), '.csv'); % '_',int2str(minWindow), '_',
+
 % xlswrite(outputfile,outputmatrix);
 
 fid = fopen(outputfile,'wt');
@@ -140,5 +148,7 @@ end
 fclose(fid);
 
 % rmpath(outfolder);
+
+end
 
 end

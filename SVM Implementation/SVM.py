@@ -41,11 +41,6 @@ layer2_pool_stride = 2
 dropout_prob = 1  # set to < 1.0 to apply dropout, 1.0 to remove
 weight_penalty = 0.01  # set to > 0.0 to apply weight penalty, 0.0 to remove
 
-DATA_PATH = 'art_data/'
-if Augment:
-    DATA_FILE = DATA_PATH + 'augmented_art_data.pickle'
-else:
-    DATA_FILE = DATA_PATH + 'art_data.pickle'
 OUTPUT_FILE = 'ConvResults.csv'
 IMAGE_SIZE = 50
 NUM_CHANNELS = 1
@@ -66,19 +61,18 @@ class PCGNet:
         print ('\nDefining model...')
 
         with self.graph.as_default():
-            # Input data
-            tf_train_batch = tf.placeholder(
-                tf.float64, shape=(batch_size, NUM_FEATS))
-            #tf_train_batch = tf.placeholder(
-            #    tf.float64, shape=(batch_size, NUM_FEATS))
-            tf_train_labels = tf.placeholder(tf.float32, shape=(batch_size, NUM_LABELS))
-#            tf_train_labels = tf.placeholder(tf.float32, shape=(batch_size))
+
+            tf_train_batch = tf.placeholder(shape=[batch_size, NUM_FEATS], dtype=tf.float32)
             tf_valid_dataset = tf.constant(self.val_X)
-            #tf_test_dataset = tf.placeholder(
-            #    tf.float64, shape=[len(self.test_X), NUM_FEATS])
             tf_test_dataset = tf.constant(self.test_X)
             tf_train_dataset = tf.placeholder(
                 tf.float64, shape=[len(self.train_X), NUM_FEATS])
+            tf_train_labels = tf.placeholder(shape=[batch_size, NUM_LABELS], dtype=tf.float32)
+            prediction_grid = tf.placeholder(shape=[None, NUM_FEATS], dtype=tf.float32)
+
+            b = tf.Variable(tf.random_normal(shape=[1, batch_size]))
+
+            gamma = tf.constant(-50.0)
 
             # Implement dropout
             dropout_keep_prob = tf.placeholder(tf.float32)
@@ -125,6 +119,11 @@ class PCGNet:
             # Model
             def network_model(data):
 
+                dist = tf.reduce_sum(tf.square(tf_train_batch), 1)
+                dist = tf.reshape(dist, [-1, 1])
+                sq_dists = tf.add(tf.sub(dist, tf.mul(2., tf.matmul(tf_train_batch, tf.transpose(tf_train_batch)))),
+                                  tf.transpose(dist))
+                my_kernel = tf.exp(tf.mul(gamma, tf.abs(sq_dists)))
                 '''Define the actual network architecture'''
 
                 # Layer 1

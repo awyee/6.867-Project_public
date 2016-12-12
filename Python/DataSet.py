@@ -294,13 +294,14 @@ class DataSet:
     @staticmethod
     def balance_dataset_by_reproduction(y_values, x_values):
 
-        u = np.unique(y_values)
+        y_sound = y_values[:,0]
+        u = np.unique(y_sound)
         class_one = u[0]
         class_two = u[1]
 
         c = dict()
-        c[class_one] = np.count_nonzero(y_values == class_one)
-        c[class_two] = np.count_nonzero(y_values == class_two)
+        c[class_one] = np.count_nonzero(y_sound == class_one)
+        c[class_two] = np.count_nonzero(y_sound == class_two)
 
         diff = np.abs(c[class_one]-c[class_two])
 
@@ -313,7 +314,7 @@ class DataSet:
         # ind = np.where(y_values == -1)
         # new = x_values(ind)
 
-        old = np.concatenate(([y_values], x_values.T)).T
+        old = np.concatenate((y_values, x_values),axis=1)
         temp = old[old[:, 0] == class_to_reproduce]
 
         # index = random.sample(range(1, y_values.__len__()), diff)
@@ -324,10 +325,10 @@ class DataSet:
 
         # Now concatenate all and split between y and x again
 
-        new = np.concatenate((new,old),axis=0)
+        new = np.concatenate((new,old), axis=0)
 
-        y = new[:,0].ravel()
-        x = new[:,1:]
+        y = new[:,0:2] # .ravel()
+        x = new[:,2:]
 
         return y, x
 

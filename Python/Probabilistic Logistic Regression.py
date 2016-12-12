@@ -13,7 +13,7 @@ from sklearn.metrics import confusion_matrix
 import visualizations
 
 # Variables
-data = DataSet.load_data_set('Split Data_Standard_12-09-2016')
+data = DataSet.load_data_set('Split Data_Standard-&-Specto_12-09-2016')
 data_type = 'auto'
 y_label = ['Normal/Abnormal','Noise'] # 'Noise'
 
@@ -81,29 +81,82 @@ test_pred_y = logreg.predict(test_x)
 
 # print('Best Score Validation Score: ', best_score)
 print('Testing Score: ', test_score)
-print('Grid: ', best_grid)
+print('\nGrid: ', best_grid)
 
 conf = confusion_matrix(test_y_sound, logreg.predict(test_x))
 print(conf)
-print('Sensitivity: ', conf[0,0]/(conf[0,0]+conf[1,0]))
-print('Specificity: ',conf[1,1]/(conf[1,1]+conf[0,1]))
+print('\nSensitivity: ', conf[0,0]/(conf[0,0]+conf[1,0]))
+print('Specificity: ', conf[1,1]/(conf[1,1]+conf[0,1]))
 
-# Now predict the unsure class
+
+# Now predict the unsure class with validation data
+probs = logreg.predict_proba(val_x)
+label = logreg.predict(val_x)
+max = np.amax(probs, axis=1)
+
+
+threshold = np.r_[0.50, 0.5001:0.60:0.0001, 0.60]
+
+res = np.zeros((3,threshold.size))
+
+num = 0
+
+for theta in threshold:
+
+    matrix = np.zeros((label.size, 5))
+    matrix[:, 0] = val_y_sound
+    matrix[:, 1] = val_y_noise
+
+    temp = max<theta
+    temp = temp.astype(int)
+
+    counter = 0
+    for i in temp:
+        if i == 0:
+            if label[counter] == 1:
+                matrix[counter, 2:5] = [1, 0, 0]
+            else:
+                matrix[counter, 2:5] = [0, 0, 1]
+        else:
+            matrix[counter, 2:5] = [0, 1, 0]
+
+        counter += 1
+
+    res[0,num],res[1,num],res[2,num]= DataSet.heart_sound_scoring(matrix)
+    num += 1
+
+# Now on test data
+
+theta = threshold[np.argmax(res[2,:])]
+
 probs = logreg.predict_proba(test_x)
 label = logreg.predict(test_x)
 max = np.amax(probs, axis=1)
 
-
-# Now compare
-
-threshold = np.r_[0.51, 0.52:0.80:0.01, 0.80]
-
 matrix = np.zeros((label.size, 5))
-matrix[:, 0] = test_pred_y
-matrix[:, 1] = test_noise_y
+matrix[:, 0] = test_y_sound
+matrix[:, 1] = test_y_noise
 
+temp = max<theta
+temp = temp.astype(int)
 
-for theta in threshold:
+counter = 0
+for i in temp:
+    if i == 0:
+        if label[counter] == 1:
+            matrix[counter, 2:5] = [1, 0, 0]
+        else:
+            matrix[counter, 2:5] = [0, 0, 1]
+    else:
+        matrix[counter, 2:5] = [0, 1, 0]
 
-    temp = max<theta
-    temp = temp.astype(int)
+    counter += 1
+
+Sensitivity, Specificty, MAcc = DataSet.heart_sound_scoring(matrix)
+
+print('\n\n_________Final Results:_________\n')
+print('Sensitivity: ', Sensitivity)
+print('Specificity: ', Specificty)
+print('MAcc: ', MAcc)
+print('theta: ', theta)
+print('Unsure: ', matrix[:, 3].sum())

@@ -5,14 +5,16 @@ from six.moves import cPickle as pickle
 import sys
 import math
 import time
+from sklearn.decomposition import PCA
 
+UsePCA=True
 Writetofile=True
 
 # Hyperparameters
 batch_size = 200
 learning_rate = 0.01
 num_training_steps = 3401
-gamma=-0.1
+gamma=float(-2)
 
 theta=0.6
 
@@ -21,7 +23,11 @@ C=1
 OUTPUT_FILE = 'SVMResults_spect.csv'
 NUM_CHANNELS = 1
 NUM_LABELS = 1
-NUM_FEATS=70
+PCAFeats=20
+if  UsePCA:
+    NUM_FEATS=PCAFeats
+else:
+    NUM_FEATS=70
 #DATA_FILE='Split Data_Standard_12-09-2016_auto_Normal_Abnormal'
 DATA_FILE='Split Data_Standard-&-Specto_12-09-2016_auto_Normal_Abnormal'
 
@@ -161,7 +167,7 @@ class PCG_SVM:
 
                     if Writetofile:
                         fd = open(OUTPUT_FILE, 'a')
-                        fd.write('\n %1f, %d, %d, %1f, %1f,' % (theta, num_training_steps, batch_size, C, gamma))
+                        fd.write('\n %1f, %d, %d, %1f, %1f, %r,' % (theta, num_training_steps, batch_size, C, gamma, UsePCA))
                         fd.write('%1f%%, %1f%%, %1f%%,' % (accuracy(train_preds, self.train_Y),
                                                            accuracy(val_preds, self.val_Y),
                                                            accuracy(test_preds, self.test_Y)))
@@ -183,7 +189,6 @@ class PCG_SVM:
         self.train_noise = data[4]
         self.val_noise = data[7]
 
-
         self.test_Y = data[0]
         self.train_Y = data[3]
         self.val_Y = data[6]
@@ -200,6 +205,14 @@ class PCG_SVM:
         self.test_X = data[2]
         self.train_X = data[5]
         self.val_X = data[8]
+
+        if UsePCA:
+
+            pca = PCA(n_components=PCAFeats)
+            pca.fit(self.train_X)
+            self.train_X = pca.transform(self.train_X)
+            self.val_X = pca.transform(self.val_X)
+            self.test_X = pca.transform(self.test_X)
 
         # Balance DataSets
         #test_y, test_x = DataSet.balance_dataset_by_reproduction(test_y, test_x)
@@ -222,12 +235,12 @@ def accuracy(predictions, labels):
 
 
 if __name__ == '__main__':
-        for j in range(0,2,1):
-            C=pow(10,float(j)/2)
-            for k in range(-4,1,1):
-                gamma=-pow(10,float(k)/2)
-                for p in range(0,8,2):
-                        theta=float(p)/10
+        # for j in range(0,2,1):
+        #     C=pow(10,float(j)/2)
+        #     for k in range(-4,1,1):
+        #         gamma=-pow(10,float(k)/2)
+        #         for p in range(0,8,2):
+        #                 theta=float(p)/10
         # for j in range (100, 1001, 100):
         #                 batch_size=j
                         t1 = time.time()

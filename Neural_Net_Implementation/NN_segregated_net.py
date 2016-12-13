@@ -7,12 +7,17 @@ import sys
 import math
 import time
 
+balanced=False
+
 UsePCA=False
 Writetofile=True
 Augment=False
 invariance = False
 layer2_switch = False
 layer3_switch = False
+
+layer0_depth= np.array([20, 5, 5, 5, 5, 5])
+layer0_size= np.array([20, 10, 10, 10, 10, 10])
 
 # Hyperparameters
 batch_size = 100
@@ -45,7 +50,7 @@ dropout_prob = 0.9  # set to < 1.0 to apply dropout, 1.0 to remove
 weight_penalty = 0.01  # set to > 0.0 to apply weight penalty, 0.0 to remove
 theta=0.6
 
-OUTPUT_FILE = 'NNResults_spect.csv'
+OUTPUT_FILE = 'NNResults_spect_seg.csv'
 NUM_CHANNELS = 1
 NUM_LABELS = 1
 
@@ -54,7 +59,10 @@ if UsePCA:
 else:
     NUM_FEATS=70
 #DATA_FILE='Split Data_Standard_12-09-2016_auto_Normal_Abnormal'
-DATA_FILE='Split Data_Standard-&-Specto_12-09-2016_auto_Normal_Abnormal_unbalanced'
+if balanced:
+    DATA_FILE='Split Data_Standard-&-Specto_12-09-2016_auto_Normal_Abnormal'
+else:
+    DATA_FILE='Split Data_Standard-&-Specto_12-09-2016_auto_Normal_Abnormal_unbalanced'
 
 
 class PCGNet:
@@ -87,42 +95,38 @@ class PCGNet:
             dropout_keep_prob = tf.placeholder(tf.float32)
 
             # Network weights/parameters that will be learned
+
+
+            layer0a_weights = tf.Variable(tf.truncated_normal(
+                [layer0_size[0], layer0_depth[0]], stddev=0.1))
+            layer0a_biases = tf.Variable(tf.zeros([layer0_depth[0]]))
+
+            layer0b_weights = tf.Variable(tf.truncated_normal(
+                [layer0_size[1], layer0_depth[1]], stddev=0.1))
+            layer0b_biases = tf.Variable(tf.zeros([layer0_depth[1]]))
+
+            layer0c_weights = tf.Variable(tf.truncated_normal(
+                [layer0_size[2], layer0_depth[2]], stddev=0.1))
+            layer0c_biases = tf.Variable(tf.zeros([layer0_depth[2]]))
+
+            layer0d_weights = tf.Variable(tf.truncated_normal(
+                [layer0_size[3], layer0_depth[3]], stddev=0.1))
+            layer0d_biases = tf.Variable(tf.zeros([layer0_depth[3]]))
+
+            layer0e_weights = tf.Variable(tf.truncated_normal(
+                [layer0_size[4], layer0_depth[4]], stddev=0.1))
+            layer0e_biases = tf.Variable(tf.zeros([layer0_depth[4]]))
+
+            layer0f_weights = tf.Variable(tf.truncated_normal(
+                [layer0_size[5], layer0_depth[5]], stddev=0.1))
+            layer0f_biases = tf.Variable(tf.zeros([layer0_depth[5]]))
+
             layer1_weights = tf.Variable(tf.truncated_normal(
-                [NUM_FEATS, layer1_depth], stddev=0.1))
+                [np.sum(layer0_depth), layer1_depth], stddev=0.1))
             layer1_biases = tf.Variable(tf.zeros([layer1_depth]))
-            layer1_feat_map_size = int(math.ceil(float(NUM_FEATS) / layer1_stride))
-            if pooling:
-                layer1_feat_map_size = int(math.ceil(float(NUM_FEATS) / layer1_pool_stride))
-
-            if layer2_switch:
-                layer2_weights = tf.Variable(tf.truncated_normal(
-                    [layer1_depth, layer2_depth], stddev=0.1))
-                layer2_biases = tf.Variable(tf.constant(1.0, shape=[layer2_depth]))
-                layer2_feat_map_size = int(math.ceil(float(layer1_feat_map_size) / layer2_stride))
-                if pooling:
-                    layer2_feat_map_size = int(math.ceil(float(layer2_feat_map_size) / layer2_pool_stride))
-
-                if layer3_switch:
-                    layer3a_weights = tf.Variable(tf.truncated_normal(
-                        [layer2_depth, layer3_depth], stddev=0.1))
-                    layer3a_biases = tf.Variable(tf.constant(1.0, shape=[layer3_depth]))
-                    layer3a_feat_map_size = int(math.ceil(float(layer2_feat_map_size) / layer3_stride))
-
-                    layer3_weights = tf.Variable(tf.truncated_normal(
-                        [layer3_depth, layer3_num_hidden], stddev=0.1))
-                    layer3_biases = tf.Variable(tf.constant(1.0, shape=[layer3_num_hidden]))
-
-                else:
-                    layer3_weights = tf.Variable(tf.truncated_normal(
-                        [layer2_depth, layer3_num_hidden], stddev=0.1))
-                    layer3_biases = tf.Variable(tf.constant(1.0, shape=[layer3_num_hidden]))
-            else:
-                layer3_weights = tf.Variable(tf.truncated_normal(
-                    [layer1_depth, layer3_num_hidden], stddev=0.1))
-                layer3_biases = tf.Variable(tf.constant(1.0, shape=[layer3_num_hidden]))
 
             layer4_weights = tf.Variable(tf.truncated_normal(
-                [layer3_num_hidden, NUM_LABELS], stddev=0.1))
+                [layer1_depth, NUM_LABELS], stddev=0.1))
             layer4_biases = tf.Variable(tf.constant(1.0, shape=[NUM_LABELS]))
 
             # Model
@@ -134,34 +138,40 @@ class PCGNet:
                 #conv1 = tf.nn.convolution(data, layer1_weights, [1, layer1_stride, layer1_stride, 1], padding='SAME')
                 #hidden = tf.nn.relu(conv1 + layer1_biases)
                 data=tf.cast(data, tf.float32)
-                hidden = tf.nn.relu(tf.matmul(data, layer1_weights) + layer1_biases)
 
-                # if pooling:
-                #     hidden = tf.nn.max_pool(hidden, ksize=[1, layer1_pool_filter_size, layer1_pool_filter_size, 1],
-                #                             strides=[1, layer1_pool_stride, layer1_pool_stride, 1],
-                #                             padding='SAME', name='pool1')
+                index1=0
+                index2=layer0_size[0]
+                hiddena = tf.nn.relu(tf.matmul(data[:,index1:index2], layer0a_weights) + layer0a_biases)
+                index1=index2
+                index2=index2+layer0_size[1]
+                hiddenb = tf.nn.relu(tf.matmul(data[:,index1:index2], layer0b_weights) + layer0b_biases)
+                index1=index2
+                index2=index2+layer0_size[2]
+                hiddenc = tf.nn.relu(tf.matmul(data[:,index1:index2], layer0c_weights) + layer0c_biases)
+                index1=index2
+                index2=index2+layer0_size[3]
+                hiddend = tf.nn.relu(tf.matmul(data[:,index1:index2], layer0d_weights) + layer0d_biases)
+                index1=index2
+                index2=index2+layer0_size[4]
+                hiddene = tf.nn.relu(tf.matmul(data[:,index1:index2], layer0e_weights) + layer0e_biases)
+                index1=index2
+                index2=index2+layer0_size[5]
+                hiddenf = tf.nn.relu(tf.matmul(data[:,index1:index2], layer0f_weights) + layer0f_biases)
 
-                # Layer 2
-                if layer2_switch:
-                    hidden = tf.nn.relu(tf.matmul(hidden, layer2_weights) + layer2_biases)
+                index0 = 0
+                index1 = layer0_size[0]
+                index2 = index1 + layer0_depth[1]
+                index3 = index2 + layer0_depth[2]
+                index4 = index3 + layer0_depth[3]
+                index5 = index4 + layer0_depth[4]
+                index6 = index5 + layer0_depth[5]
+                hidden = tf.nn.relu(tf.matmul(hiddena, layer1_weights[index0:index1,:]) +
+                                    tf.matmul(hiddenb, layer1_weights[index1:index2,:]) +
+                                    tf.matmul(hiddenc, layer1_weights[index2:index3,:]) +
+                                    tf.matmul(hiddend, layer1_weights[index3:index4,:]) +
+                                    tf.matmul(hiddene, layer1_weights[index4:index5,:]) +
+                                    tf.matmul(hiddenf, layer1_weights[index5:index6,:]) +layer1_biases)
 
-                    # if pooling:
-                    #     hidden = tf.nn.max_pool(hidden, ksize=[1, layer2_pool_filter_size, layer2_pool_filter_size, 1],
-                    #                             strides=[1, layer2_pool_stride, layer2_pool_stride, 1],
-                    #                             padding='SAME', name='pool2')
-
-                    if layer3_switch:
-                        #conv3 = tf.nn.convolution(hidden, layer3a_weights, [1, layer3_stride, layer3_stride, 1], padding='SAME')
-                        #hidden = tf.nn.relu(conv3 + layer3a_biases)
-                        hidden = tf.nn.relu(tf.matmul(hidden, layer3_weights) + layer3_biases)
-
-                # Layer 3
-                #shape = hidden.get_shape().as_list()
-                #reshape = tf.reshape(hidden, [shape[0], shape[1] * shape[2] * shape[3]])
-                hidden = tf.nn.relu(tf.matmul(hidden, layer3_weights) + layer3_biases)
-                hidden = tf.nn.dropout(hidden, dropout_keep_prob)
-
-                # Layer 4
                 output = tf.matmul(hidden, layer4_weights) + layer4_biases
                 return output
 
@@ -172,7 +182,9 @@ class PCGNet:
             loss = tf.reduce_sum(abs(tf.nn.sigmoid(logits)-tf_train_labels))
 
             # Add weight decay penalty
-            loss = loss + weight_decay_penalty([layer1_weights, layer3_weights, layer4_weights], weight_penalty)
+            loss = loss + weight_decay_penalty([layer0a_weights, layer0b_weights, layer0c_weights,
+                                                layer0d_weights, layer0e_weights, layer0f_weights,
+                                                layer1_weights, layer4_weights], weight_penalty)
 
             # Optimizer
             optimizer = tf.train.GradientDescentOptimizer(learning_rate).minimize(loss)
@@ -236,11 +248,10 @@ class PCGNet:
 
                     Sensitivity, Specificity, MAcc = DataSet.heart_sound_scoring(matrix)
                     # res[0, num], res[1, num], res[2, num] = DataSet.heart_sound_scoring(matrix)
-                    print('Validation Results')
+                    # print('Final Results:')
                     print('Sensitivity: ', Sensitivity)
                     print('Specificity: ', Specificity)
                     print('MAcc: ', MAcc)
-
                     counter = 0
                     n = len(self.test_Y)
                     matrix = np.zeros((n, 5))
@@ -263,22 +274,23 @@ class PCGNet:
                     print('Specificity: ', TestSpecificity)
                     print('MAcc: ', TestMAcc)
 
-
                     print('Dropout Probability: %1f' % dropout_prob)
                     print('Weight Penalty: %1f' % weight_penalty)
                     print('Number of Steps: %d' % num_training_steps)
 
-
-
-
                     if Writetofile:
                         fd = open(OUTPUT_FILE, 'a')
-                        fd.write('\n %1f, %d, %d, %d, %d,' % (theta, layer1_depth, layer3_depth, num_training_steps, batch_size))
+                        fd.write('\n %1f, %d, %d, %d, %d,' % (
+                        theta, layer1_depth, layer3_depth, num_training_steps, batch_size))
                         fd.write('%1f, %1f,' % (dropout_prob, weight_penalty))
-                        fd.write('%1f%%, %1f%%, %1f%%,' % (accuracy(train_preds, self.train_Y), accuracy(val_preds, self.val_Y), accuracy(test_preds, self.test_Y)))
-                        fd.write('%1f%%, %1f%%, %1f%%,' % (Sensitivity*100, Specificity*100,MAcc*100))
-                        fd.write('%1f%%, %1f%%, %1f%%,' % (TestSensitivity * 100, TestSpecificity * 100, TestMAcc * 100))
-                        #fd.write('%r, %r, %r, %1f, %1f, %d, %.1f%%, %.1f%%' % (pooling, Augment, invariance, dropout_prob, weight_penalty, num_training_steps, accuracy(val_preds, self.val_Y), accuracy(train_preds, self.train_Y)))
+                        fd.write('%1f%%, %1f%%, %1f%%,' % (
+                        accuracy(train_preds, self.train_Y), accuracy(val_preds, self.val_Y),
+                        accuracy(test_preds, self.test_Y)))
+                        fd.write('%1f%%, %1f%%, %1f%%,' % (Sensitivity * 100, Specificity * 100, MAcc * 100))
+                        fd.write(
+                            '%1f%%, %1f%%, %1f%%,' % (TestSensitivity * 100, TestSpecificity * 100, TestMAcc * 100))
+                        fd.write('%r,' % balanced)
+                        # fd.write('%r, %r, %r, %1f, %1f, %d, %.1f%%, %.1f%%' % (pooling, Augment, invariance, dropout_prob, weight_penalty, num_training_steps, accuracy(val_preds, self.val_Y), accuracy(train_preds, self.train_Y)))
                         fd.close()
 
             self.train_model = train_model
@@ -369,6 +381,20 @@ if __name__ == '__main__':
 #        pooling=i
 #        layer1_pool_filter_size=i
 #        layer1_pool_stride=i
+#         for j in range(16,64,16):
+#             layer1_depth=j
+# #                    layer2_pool_stride=j
+# #            layer2_filter_size=j
+#             for k in range(16,64,16):
+#                 layer3_depth=k
+#                 for p in range(0,4,1):
+#                         theta=float(p)/5
+# #                    Augment=True
+# #                    num_training_steps=6001
+#                     for q in range (500,4500,500):
+#                         num_training_steps=q
+#                         print('%r %d %d %d %d' % (i,j,k,p,q))
+# #                    print('%d %d' % (i,j))
         for j in range(16,64,16):
             layer1_depth=j
 # #                    layer2_pool_stride=j
@@ -377,12 +403,6 @@ if __name__ == '__main__':
                 layer3_depth=k
                 for p in range(0,4,1):
                         theta=float(p)/5
-# #                    Augment=True
-# #                    num_training_steps=6001
-#                     for q in range (500,4500,500):
-#                         num_training_steps=q
-#                         print('%r %d %d %d %d' % (i,j,k,p,q))
-# #                    print('%d %d' % (i,j))
                         t1 = time.time()
                         conv_net = PCGNet()
                         conv_net.train_model()

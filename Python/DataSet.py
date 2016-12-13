@@ -382,7 +382,6 @@ class DataSet:
 
         return Sensitivity, Specificty, MAcc
 
-
 # def consolidate_feature_files(general_path, general_file_name, dataset_labels, y_values):
 #
 #     frames = []

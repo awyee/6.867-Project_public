@@ -1,16 +1,10 @@
 # 6th December 2016
 
-import time
 from DataSet import DataSet
-import os
-import pickle
-import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
 from sklearn import linear_model, datasets
 from sklearn.model_selection import ParameterGrid
 from sklearn.metrics import confusion_matrix
-import visualizations
 
 # Variables
 data = DataSet.load_data_set('Split Data_Standard-&-Specto_12-09-2016')
@@ -56,8 +50,8 @@ logreg = linear_model.LogisticRegression(penalty='l1')
 
 # Train Model
 # Train Parameters with Parameter grid method
-# param_grid = {'penalty':['l1','l2'],'C':[1e5,1e4,1e3,1e2,1e1,1,1e-1,1e-2,1e-3]}
-param_grid = {'penalty':['l1'],'C':[1]}
+# param_grid = {'penalty':['l1','l2'],'C':[1e2, 1e1, 1, 1e-1, 1e-2]}
+param_grid = {'penalty':['l1'],'C':[0.1]}
 
 best_score = 0
 for g in ParameterGrid(param_grid):

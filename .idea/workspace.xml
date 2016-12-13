@@ -2,8 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="aa7be5d8-4a26-4285-a4a8-288e3dd528c9" name="Default" comment="">
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/Python/Feature Selection.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Python/.idea/workspace.xml" afterPath="$PROJECT_DIR$/Python/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Python/NicsMethods.py" afterPath="$PROJECT_DIR$/Python/NicsMethods.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Python/Probabilistic Logistic Regression.py" afterPath="$PROJECT_DIR$/Python/Probabilistic Logistic Regression.py" />
     </list>
     <ignored path="6.867-Project.iws" />

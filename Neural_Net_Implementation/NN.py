@@ -47,7 +47,7 @@ NUM_CHANNELS = 1
 NUM_LABELS = 1
 NUM_FEATS=70
 #DATA_FILE='Split Data_Standard_12-09-2016_auto_Normal_Abnormal'
-DATA_FILE='Split Data_Standard-&-Specto_12-09-2016_auto_Normal_Abnormal'
+DATA_FILE='Split Data_Standard-&-Specto_12-09-2016_auto_Normal_Abnormal_unbalanced'
 
 
 class PCGNet:

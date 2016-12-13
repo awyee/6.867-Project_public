@@ -38,7 +38,7 @@ test_y_noise = test_y[:, 1].ravel()
 train_y,train_x = DataSet.balance_dataset_by_reproduction(train_y,train_x)
 train_y_sound = train_y[:, 0].ravel()
 train_y_noise = train_y[:, 1].ravel()
-val_y,val_x = DataSet.balance_dataset_by_reproduction(val_y,val_x)
+# val_y,val_x = DataSet.balance_dataset_by_reproduction(val_y,val_x)
 val_y_sound = val_y[:, 0].ravel()
 val_y_noise = val_y[:, 1].ravel()
 

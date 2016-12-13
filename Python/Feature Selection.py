@@ -3,6 +3,12 @@
 from DataSet import DataSet
 from sklearn import linear_model, datasets
 from sklearn.feature_selection import SelectFromModel
+from sklearn.decomposition import PCA
+import matplotlib.pyplot as plt
+
+''' Preamble '''
+L1 = False
+PCA_F = True
 
 ''' Prepare Data '''
 
@@ -41,16 +47,33 @@ val_y,val_x = DataSet.balance_dataset_by_reproduction(val_y,val_x)
 val_y_sound = val_y[:, 0].ravel()
 val_y_noise = val_y[:, 1].ravel()
 
-''' Create Model '''
-logreg = linear_model.LogisticRegression(penalty='l1',C=1)
-logreg.fit(train_x, train_y_sound)
-model = SelectFromModel(logreg, prefit=True)
+''' L1 Feature Selection '''
+if L1:
+    logreg = linear_model.LogisticRegression(penalty='l1',C=1)
+    logreg.fit(train_x, train_y_sound)
+    model = SelectFromModel(logreg, prefit=True)
 
-X_new = model.transform(train_x)
+    X_new = model.transform(train_x)
 
-print('Old Features: ')
-print(train_x.shape)
-print('New Features: ')
-print(X_new.shape)
+    print('Old Features: ')
+    print(train_x.shape)
+    print('New Features: ')
+    print(X_new.shape)
+    print('Coefficients: ')
+    print(model.estimator.coef_)
 
+
+''' PCA Feature Selection '''
+if PCA_F:
+    pca = PCA(n_components=20)
+    pca.fit(train_x)
+    print(pca.explained_variance_ratio_)
+
+    plt.plot(pca.explained_variance_ratio_)
+    plt.ylabel('PCA')
+    plt.show()
+
+    x_new = pca.transform(train_x)
+
+    print(x_new.shape)
 

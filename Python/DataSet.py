@@ -239,7 +239,6 @@ class DataSet:
         pickle.dump(self, open(self.name+'.p', 'wb'))  # wb: write and binary
 
     def split_to_ttv(self, sheet):
-        # Mi sembra funzioni bene ma devo controllare perchè lo mette giallo
         x = pd.DataFrame(sheet.values)
         test = x.sample(frac=self.testing_frac)
 

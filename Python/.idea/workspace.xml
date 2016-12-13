@@ -2,11 +2,37 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="7bbabf58-4a08-4ce5-bb56-80d75a07a1db" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/Cross Correlation.py" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../.idea/6.867-Project.iml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../.idea/misc.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../.idea/modules.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../.idea/vcs.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../.idea/workspace.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../Neural_Net_Implementation/DataSet.py" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../Neural_Net_Implementation/NN.py" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../Neural_Net_Implementation/NNResults.csv" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../Neural_Net_Implementation/NNResults_spect.csv" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../Neural_Net_Implementation/Prepare_Data_NN.py" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../Neural_Net_Implementation/Split Data_Standard-&amp;-Specto_12-09-2016.p" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../Neural_Net_Implementation/Split Data_Standard-&amp;-Specto_12-09-2016_auto_Normal_Abnormal.p" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../Neural_Net_Implementation/Split Data_Standard_12-09-2016.p" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../Neural_Net_Implementation/Split Data_Standard_12-09-2016_auto_Normal_Abnormal.p" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../Neural_Net_Implementation/Split Data_Standard_12-09-2016_auto_Normal_Abnormal_old.p" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../Neural_Net_Implementation/Split Data_Standard_12-09-2016_old.p" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../SVM Implementation/.idea/SVM Implementation.iml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../SVM Implementation/.idea/misc.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../SVM Implementation/.idea/modules.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../SVM Implementation/.idea/workspace.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../SVM Implementation/DataSet.py" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../SVM Implementation/Prepare_Data_NN.py" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../SVM Implementation/SVM.py" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../SVM Implementation/Split Data_Standard_12-09-2016.p" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../SVM Implementation/Split Data_Standard_12-09-2016_auto_Normal_Abnormal.p" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../sample2016/.idea/misc.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../sample2016/.idea/modules.xml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../sample2016/.idea/sample2016.iml" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../sample2016/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/DataSet.py" afterPath="$PROJECT_DIR$/DataSet.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Feature Selection.py" afterPath="$PROJECT_DIR$/Feature Selection.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Probabilistic Logistic Regression.py" afterPath="$PROJECT_DIR$/Probabilistic Logistic Regression.py" />
     </list>
     <ignored path="Python.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -577,15 +603,15 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="-1" y="23" width="1280" height="773" extended-state="6" />
-    <editor active="true" />
+    <editor active="false" />
     <layout>
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.30048466" sideWeight="0.76175547" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.30048466" sideWeight="0.76175547" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32892805" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.38032305" sideWeight="0.503231" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32876712" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.46986303" sideWeight="0.49676898" order="7" side_tool="false" content_ui="tabs" x="21" y="280" width="1238" height="259" />
-      <window_info id="Run" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.5315712" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.5315712" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32892805" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.30048466" sideWeight="0.23824452" order="2" side_tool="true" content_ui="tabs" />

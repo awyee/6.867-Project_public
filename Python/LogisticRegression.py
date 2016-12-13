@@ -82,3 +82,5 @@ print(conf)
 print('Sensitivity: ', conf[0,0]/(conf[0,0]+conf[1,0]))
 print('Specificity: ',conf[1,1]/(conf[1,1]+conf[0,1]))
 
+
+

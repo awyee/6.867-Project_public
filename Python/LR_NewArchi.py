@@ -187,3 +187,12 @@ print('Final Results:')
 print('Sensitivity: ', Sensitivity)
 print('Specificity: ', Specificty)
 print('MAcc: ', MAcc)
+
+print('________________________________')
+print('Auto on Manual trained Abnormal/Normal')
+conf = confusion_matrix(test_sound_y, logreg_sound.predict(test_x))
+print(conf)
+print('Sensitivity: ', conf[0,0]/(conf[0,0]+conf[1,0]))
+print('Specificity: ',conf[1,1]/(conf[1,1]+conf[0,1]))
+print('________________________________')
+

@@ -6,7 +6,7 @@ import sys
 import math
 import time
 
-Writetofile=False
+Writetofile=True
 Augment=False
 invariance = False
 layer2_switch = False
@@ -15,7 +15,7 @@ layer3_switch = False
 # Hyperparameters
 batch_size = 100
 learning_rate = 0.01
-num_training_steps = 4301
+num_training_steps = 3401
 
 layer1_filter_size = 4
 layer1_depth = 16
@@ -38,20 +38,16 @@ layer2_pool_filter_size = 2
 layer2_pool_stride = 2
 
 # Enable dropout and weight decay normalization
-dropout_prob = 1  # set to < 1.0 to apply dropout, 1.0 to remove
+dropout_prob = 0.9  # set to < 1.0 to apply dropout, 1.0 to remove
 weight_penalty = 0.01  # set to > 0.0 to apply weight penalty, 0.0 to remove
+theta=0.6
 
-DATA_PATH = 'art_data/'
-if Augment:
-    DATA_FILE = DATA_PATH + 'augmented_art_data.pickle'
-else:
-    DATA_FILE = DATA_PATH + 'art_data.pickle'
-OUTPUT_FILE = 'ConvResults.csv'
-IMAGE_SIZE = 50
+OUTPUT_FILE = 'NNResults_spect.csv'
 NUM_CHANNELS = 1
 NUM_LABELS = 1
-NUM_FEATS=20
-INCLUDE_TEST_SET = False
+NUM_FEATS=70
+#DATA_FILE='Split Data_Standard_12-09-2016_auto_Normal_Abnormal'
+DATA_FILE='Split Data_Standard-&-Specto_12-09-2016_auto_Normal_Abnormal'
 
 
 class PCGNet:
@@ -199,7 +195,7 @@ class PCGNet:
                         if (step % 200 == 0):
                             train_preds = session.run(train_prediction, feed_dict={tf_train_dataset: self.train_X,
                                                                                    dropout_keep_prob: 1.0})
-                            val_preds = session.run(valid_prediction, feed_dict={dropout_keep_prob: 1.0})
+                            val_preds  = session.run(valid_prediction, feed_dict={dropout_keep_prob: 1.0})
                             test_preds = session.run(test_prediction, feed_dict={dropout_keep_prob: 1.0})
                             print('')
                             print('Batch loss at step %d: %f' % (step, l))
@@ -209,6 +205,8 @@ class PCGNet:
                             #if accuracy(val_preds, self.val_Y)>70:
                             #    break
                             print('Test accuracy: %.1f%%' % accuracy(test_preds, self.test_Y))
+
+
 
                     # This code is for the final question
 
@@ -231,6 +229,40 @@ class PCGNet:
 
                             # save train model function so it can be called later
 
+                    # probs = logreg.predict_proba(train_x)
+                    # label = logreg.predict(train_x)
+                    # max = np.amax(probs, axis=1)
+
+                    # threshold = np.r_[0.50, 0.51:0.80:0.01, 0.80]
+
+                    # res = np.zeros((3, threshold.size))
+
+                    num = 0
+
+                    # for theta in threshold:
+                    n = len(self.val_Y)
+                    matrix = np.zeros((n, 5))
+                    matrix[:, 0] = np.array(self.val_Y).reshape(n) * 2 - 1
+                    matrix[:, 1] = np.array(self.val_noise).reshape(n)
+
+                    counter = 0
+                    for i in val_preds:
+                        if i > (0.5 + theta / 2):
+                            matrix[counter, 2:5] = [1, 0, 0]
+                        elif i < (0.5 - theta / 2):
+                            matrix[counter, 2:5] = [0, 0, 1]
+                        else:
+                            matrix[counter, 2:5] = [0, 1, 0]
+
+                        counter += 1
+
+                    Sensitivity, Specificity, MAcc = DataSet.heart_sound_scoring(matrix)
+                    # res[0, num], res[1, num], res[2, num] = DataSet.heart_sound_scoring(matrix)
+                    # print('Final Results:')
+                    print('Sensitivity: ', Sensitivity)
+                    print('Specificity: ', Specificity)
+                    print('MAcc: ', MAcc)
+
                     print('')
                     print('Parameters')
                     if pooling:
@@ -241,23 +273,16 @@ class PCGNet:
                     print('Weight Penalty: %1f' % weight_penalty)
                     print('Number of Steps: %d' % num_training_steps)
 
+
+
+
                     if Writetofile:
                         fd = open(OUTPUT_FILE, 'a')
-                        fd.write('\n %d, %d, %d,' % (layer1_filter_size, layer1_depth, layer1_stride))
-                        if layer2_switch:
-                            fd.write(' %d, %d, %d,' % (layer2_filter_size, layer2_depth, layer2_stride))
-                        else:
-                            fd.write(' NaN, NaN, NaN,')
-                        if layer3_switch:
-                            fd.write(' %d, %d, %d,' % (layer3_filter_size, layer3_depth, layer3_stride))
-                        else:
-                            fd.write(' NaN, NaN, NaN,')
-                        fd.write(' %d, NaN, ' % (layer3_num_hidden))
-                        if pooling:
-                            fd.write(' %d, %d, %d, %d,' % (layer1_pool_filter_size, layer1_pool_stride,layer2_pool_filter_size, layer2_pool_stride))
-                        else:
-                            fd.write(' NaN, NaN, NaN, NaN,')
-                        fd.write('%r, %r, %r, %1f, %1f, %d, %.1f%%, %.1f%%' % (pooling, Augment, invariance, dropout_prob, weight_penalty, num_training_steps, accuracy(val_preds, self.val_Y), accuracy(train_preds, self.train_Y)))
+                        fd.write('\n %1f, %d, %d, %d, %d,' % (theta, layer1_depth, layer3_depth, num_training_steps, batch_size))
+                        fd.write('%1f, %1f,' % (dropout_prob, weight_penalty))
+                        fd.write('%1f%%, %1f%%, %1f%%,' % (accuracy(train_preds, self.train_Y), accuracy(val_preds, self.val_Y), accuracy(test_preds, self.test_Y)))
+                        fd.write('%1f%%, %1f%%, %1f%%,' % (Sensitivity*100, Specificity*100,MAcc*100))
+                        #fd.write('%r, %r, %r, %1f, %1f, %d, %.1f%%, %.1f%%' % (pooling, Augment, invariance, dropout_prob, weight_penalty, num_training_steps, accuracy(val_preds, self.val_Y), accuracy(train_preds, self.train_Y)))
                         fd.close()
 
             self.train_model = train_model
@@ -275,16 +300,20 @@ class PCGNet:
         #         self.test_Y = save['test_labels']
         #     del save  # hint to help gc free up memory
         # Variables
-        data = DataSet.load_data_set('Split Data_Standard_12-09-2016_auto_Normal_Abnormal')
+        data = DataSet.load_data_set(pickle_file)
         data_type = 'auto'
         y_label = 'Normal/Abnormal'  # 'Normal/Abnormal'
 
         ''' Logistic Regression with Auto Data'''
         # Data Preparation
+        self.test_noise = data[1]
+        self.train_noise = data[4]
+        self.val_noise = data[7]
+
 
         self.test_Y = data[0]/2+0.5
-        self.train_Y = data[2]/2+0.5
-        self.val_Y = data[4]/2+0.5
+        self.train_Y = data[3]/2+0.5
+        self.val_Y = data[6]/2+0.5
 
         Ydim=np.array(self.test_Y).shape
         self.test_Y=np.array(self.test_Y).reshape(Ydim[0],1)
@@ -295,9 +324,9 @@ class PCGNet:
         Ydim=np.array(self.val_Y).shape
         self.val_Y=np.array(self.val_Y).reshape(Ydim[0],1)
 
-        self.test_X = data[1]
-        self.train_X = data[3]
-        self.val_X = data[5]
+        self.test_X = data[2]
+        self.train_X = data[5]
+        self.val_X = data[8]
 
         # Balance DataSets
         #test_y, test_x = DataSet.balance_dataset_by_reproduction(test_y, test_x)
@@ -323,7 +352,7 @@ if __name__ == '__main__':
 #    tstart = time.time()
 
 #    for i in range(10,20,1):
-#        dropout_prob=i/float(20)
+#                        dropout_prob=i/float(20)
 #        print("%d %1f" %(i,dropout_prob))
 #    for i in range(100,2100,100):
 #        num_training_steps=i
@@ -335,22 +364,23 @@ if __name__ == '__main__':
 #        pooling=i
 #        layer1_pool_filter_size=i
 #        layer1_pool_stride=i
-#        for j in range(2,12,3):
-#                    layer2_pool_filter_size=j
-#                    layer2_pool_stride=j
-#            layer2_filter_size=j
-#            for k in range(1,5):
-#                layer2_stride=k
-#                for p in range(8,33,8):
-#                    layer2_depth=p
-#                    Augment=True
-#                    num_training_steps=6001
-#                    print('%r %d %d %d' % (i,j,k,p))
-#                    print('%d %d' % (i,j))
-                    t1 = time.time()
-                    conv_net = PCGNet()
-                    conv_net.train_model()
-                    t2 = time.time()
-                    print('Data File: %s' %DATA_FILE)
-                    print ("Finished training. Total time taken:", t2 - t1)
+        for j in range(16,64,16):
+            layer1_depth=j
+# #                    layer2_pool_stride=j
+# #            layer2_filter_size=j
+            for k in range(16,64,16):
+                layer3_depth=k
+                for p in range(0,4,1):
+                        theta=float(p)/5
+# #                    Augment=True
+# #                    num_training_steps=6001
+#                     for q in range (500,4500,500):
+#                         num_training_steps=q
+#                         print('%r %d %d %d %d' % (i,j,k,p,q))
+# #                    print('%d %d' % (i,j))
+                        t1 = time.time()
+                        conv_net = PCGNet()
+                        conv_net.train_model()
+                        t2 = time.time()
+                        print ("Finished training. Total time taken:", t2 - t1)
 #                    print "Total time elapsed:", t2 - tstart

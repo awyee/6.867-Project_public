@@ -42,11 +42,9 @@ dropout_prob = 1  # set to < 1.0 to apply dropout, 1.0 to remove
 weight_penalty = 0.01  # set to > 0.0 to apply weight penalty, 0.0 to remove
 
 OUTPUT_FILE = 'ConvResults.csv'
-IMAGE_SIZE = 50
 NUM_CHANNELS = 1
 NUM_LABELS = 1
 NUM_FEATS=20
-INCLUDE_TEST_SET = False
 
 
 class PCGNet:
